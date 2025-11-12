@@ -198,6 +198,9 @@ document.addEventListener("DOMContentLoaded", () => {
   createParticles();
 });
 
+// Updating footer year
+document.getElementById('footeryear').textContent =  new Date().getFullYear();
+
 // Smooth scrolling for navigation links
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   anchor.addEventListener("click", function (e) {
