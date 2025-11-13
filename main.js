@@ -147,6 +147,12 @@ function setupEnhancedSearch() {
 
       renderGames(filteredGames);
       gamesGrid.style.opacity = "1";
+      
+      // scroll to "Featured Games" section
+            const gamesSection = document.getElementById('games');
+            if (gamesSection){
+                gamesSection.scrollIntoView({behavior: "smooth", block: "start"});
+            }
 
       // Show no results message
       if (filteredGames.length === 0 && searchTerm) {
