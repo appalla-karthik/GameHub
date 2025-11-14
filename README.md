@@ -73,21 +73,54 @@
 
 ```
 GameHub/
-├── index.html             # Homepage
-├── style.css              # Custom styles
-├── main.js                # Main logic
-├── games/                 # Game HTML pages
-│   ├── tic-tac-toe.html
-│   ├── snake.html
-│   ├── simon.html
-│   ├── memory.html
-│   └── rps.html
-└── scripts/               # Game logic scripts
-    ├── tic-tac-toe.js
-    ├── snake.js
-    ├── simon.js
-    ├── memory.js
-    └── rps.js
+├── gamehub_project/
+│   ├── accounts/                   # Authentication app
+│   │   ├── migrations/
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   │
+│   ├── gamehub_project/            # Core Django settings
+│   │   ├── __init__.py
+│   │   ├── asgi.py
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   └── wsgi.py
+│   │
+│   ├── static/                     # Static files (CSS, JS, Images)
+│   │   ├── assets/                 # Game thumbnails & icons
+│   │   ├── games/                  # HTML files for games
+│   │   ├── scripts/                # All game logic JS files
+│   │   │   ├── snake.js
+│   │   │   ├── simon.js
+│   │   │   ├── rps.js
+│   │   │   ├── sudoku.js
+│   │   │   ├── memory.js
+│   │   │   ├── breakout.js
+│   │   │   ├── minesweeper.js
+│   │   │   ├── tic-tac-toe.js
+│   │   │   ├── audio-system.js
+│   │   │   └── audio-ui.js
+│   │   ├── main.js
+│   │   ├── script1.js
+│   │   └── style.css
+│   │
+│   ├── staticfiles/                # Auto-generated (ignored in git)
+│   │
+│   ├── templates/                  # Django HTML templates
+│   │   ├── index.html              # Homepage
+│   │   └── login.html              # Authentication page
+│   │
+│   ├── db.sqlite3                  # Local database
+│   └── manage.py
+│
+├── .gitignore
+├── LICENSE
+├── CODE_OF_CONDUCT.md
+└── README.md
+
 ```
 
 ***
@@ -96,12 +129,14 @@ GameHub/
 
 <details>
   <summary>Homepage</summary>
-  <img width="1908" height="876" alt="image" src="https://github.com/user-attachments/assets/1ea35951-840a-4045-b84a-7ba70b667e80" />
+  <img width="1920" height="872" alt="image" src="https://github.com/user-attachments/assets/2b55d9b8-0edb-4824-bf75-0e5d2808c325" />
+
 </details>
 
 <details>
   <summary>Games Collection</summary>
-  <img width="1601" height="874" alt="image" src="https://github.com/user-attachments/assets/796aa9c5-2ffb-4ef8-9144-3e423a5af1e1" />
+  <img width="1331" height="870" alt="image" src="https://github.com/user-attachments/assets/6167e112-e281-4269-9d35-0bdc0ac4176b" />
+
 </details>
 
 ***
@@ -113,31 +148,41 @@ GameHub/
 ***
 
 ## 🚀 Quick Start
+Follow these steps to run the GameHub Django project locally:
 
-### 1️⃣ Clone the repository
+1️⃣ Clone the Repository
 
-```bash
-git clone https://github.com/kaifansariw/GameHub.git
-cd GameHub
-```
+    git clone https://github.com/kaifansariw/GameHub.git
+    
+    cd GameHub
 
-### 2️⃣ Open in your browser (Option 1: Direct file open)
+2️⃣ Install Django
 
-| OS               | Command / Method                   |
-|------------------|------------------------------------|
-| **Windows**      | Double-click `index.html` <br> _or in CMD:_<br> `start index.html` |
-| **macOS**        | Double-click `index.html` <br> _or in Terminal:_<br> `open index.html` |
-| **Linux**        | Double-click `index.html` <br> _or in Terminal:_<br> `xdg-open index.html` |
+    pip install django
 
-No setup, build, or dependencies required—just open and play.
+3️⃣ Navigate to the Project Folder
 
-***
+Move into the folder where manage.py is located:
+
+    cd gamehub_project
+
+4️⃣ Run the Development Server
+
+    python manage.py runserver
+
+5️⃣ Open in Browser
+
+Visit:
+
+    http://127.0.0.1:8000/
+
+Your GameHub website will now be live locally 🎮🚀`
 
 ## 🔧 Adding New Games
 
-1. Add a new HTML file in `/games/`
-2. Write the game's JS in `/scripts/`
-3. Register your game in the games array in `main.js`:
+1. Add a new HTML file in `static/games/`
+2. Write the game's JS in `static/scripts/`
+3. Register your game in the games array in `static/main.js`:
 
 ```javascript
 {
@@ -203,8 +248,6 @@ Made with ❤️ by [Kaif Ansari](https://github.com/kaifansariw)
 
 #### Thanks to all the wonderful contributors 💖
 
-<a href="https://github.com/kaifanasariw/GameHub/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=kaifanasariw/GameHub" />
-</a>
+<a href="https://github.com/kaifansariw/GameHub/graphs/contributors"> <img src="https://contrib.rocks/image?repo=kaifansariw/GameHub" /> </a>
 
-#### See full list of contributor contribution [Contribution Graph](https://github.com/kaifanasariw/GameHub/graphs/contributors)
+#### See full list of contributor contribution [Contribution Graph]([https://github.com/kaifanasariw/GameHub/graphs/contributors](https://github.com/kaifansariw/GameHub/graphs/contributors))
