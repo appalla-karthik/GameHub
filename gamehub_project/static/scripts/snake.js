@@ -1,15 +1,10 @@
-/**************************************
- *  SNAKE GAME - UX IMPROVED VERSION
- **************************************/
-
-// ================================
-// GLOBALS
-// ================================
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+// snake.js (New Top Lines)
+let canvas; 
+let ctx;
+let tileCount; 
+// ... rest of your global variables (gridSize, snake, food, etc.)
 
 const gridSize = 20;
-const tileCount = Math.floor(canvas.width / gridSize);
 
 let snake = [{ x: 10, y: 10 }];
 let food = { x: 5, y: 5 };
@@ -105,35 +100,15 @@ function showToast(msg, duration = 1400) {
   }, duration);
 }
 
-/* WebAudio beeps (no external files) */
-const audioCtx = (function() {
-  try {
-    return new (window.AudioContext || window.webkitAudioContext)();
-  } catch { return null; }
-})();
-function beep(freq = 440, len = 0.06, type = "sine") {
-  if (!audioCtx) return;
-  const o = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-  o.type = type;
-  o.frequency.value = freq;
-  o.connect(g);
-  g.connect(audioCtx.destination);
-  g.gain.value = 0.0001;
-  const now = audioCtx.currentTime;
-  g.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
-  o.start(now);
-  g.gain.exponentialRampToValueAtTime(0.0001, now + len);
-  o.stop(now + len + 0.02);
-}
-
-// ================================
-// ACHIEVEMENTS (same idea)
- // ================================
-function checkAchievements() {
-  achievements.forEach(a => {
-    if (!unlockedAchievements.includes(a.id) && a.condition()) {
-      unlockAchievement(a.id);
+// Initialize game
+function initGame() {
+    // Check if canvas and context are available
+    canvas = document.getElementById('gameCanvas');
+    ctx = canvas.getContext('2d');
+    tileCount = canvas.width / gridSize;
+    if (!canvas || !ctx) {
+        console.error('Canvas or context not found!');
+        return;
     }
   });
 }
