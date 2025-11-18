@@ -31,6 +31,9 @@ const achievements = [
   { id: 'centuryClub', name: 'Century Club', description: 'Score 100 points', condition: () => score >= 100, icon: 'fas fa-trophy', color: 'text-yellow-400' }
 ];
 
+// Audio context for beeps
+let audioCtx;
+
 // ================================
 // UTILS: CSRF / API / TOAST / AUDIO
 // ================================
@@ -68,6 +71,27 @@ function trackPlay() {
   }).catch(() => {});
 }
 
+function beep(freq, duration, type = "sine") {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!audioCtx) return; // Fallback if no audio support
+  }
+  try {
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    oscillator.frequency.value = freq;
+    oscillator.type = type;
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    oscillator.start(audioCtx.currentTime);
+    oscillator.stop(audioCtx.currentTime + duration);
+  } catch (e) {
+    // Silent fail if audio issues
+  }
+}
+
 /* tiny toast */
 function showToast(msg, duration = 1400) {
   const t = document.createElement("div");
@@ -100,19 +124,8 @@ function showToast(msg, duration = 1400) {
   }, duration);
 }
 
-// Initialize game
-function initGame() {
-    // Check if canvas and context are available
-    canvas = document.getElementById('gameCanvas');
-    ctx = canvas.getContext('2d');
-    tileCount = canvas.width / gridSize;
-    if (!canvas || !ctx) {
-        console.error('Canvas or context not found!');
-        return;
-    }
-  });
-}
 function unlockAchievement(achievementId) {
+  if (unlockedAchievements.includes(achievementId)) return;
   unlockedAchievements.push(achievementId);
   localStorage.setItem("snakeAchievements", JSON.stringify(unlockedAchievements));
   const index = achievements.findIndex(a => a.id === achievementId);
@@ -123,6 +136,15 @@ function unlockAchievement(achievementId) {
   }
   showToast(`Achievement: ${achievements.find(a => a.id === achievementId).name}`);
 }
+
+function checkAchievements() {
+  achievements.forEach(a => {
+    if (a.condition() && !unlockedAchievements.includes(a.id)) {
+      unlockAchievement(a.id);
+    }
+  });
+}
+
 function initAchievements() {
   const container = document.getElementById("achievementsList");
   if (!container) return;
@@ -205,16 +227,18 @@ function updateGame() {
 
   const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
-  // wall or self-collision
-  if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount || snake.some(s => s.x === head.x && s.y === head.y)) {
-    // game over
+  // Check wall collision
+  if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
     gameOver();
     return;
   }
 
+  // Move snake
   snake.unshift(head);
 
+  let eating = false;
   if (head.x === food.x && head.y === food.y) {
+    eating = true;
     score += 10;
     foodEaten++;
     document.getElementById("score").textContent = score;
@@ -229,9 +253,18 @@ function updateGame() {
       // you can call server-side awarding here if desired
       showToast("🎉 Century reached!");
     }
+  }
 
-  } else {
+  if (!eating) {
     snake.pop();
+  }
+
+  // Check self-collision after move (head against body excluding head itself)
+  for (let i = 1; i < snake.length; i++) {
+    if (snake[i].x === head.x && snake[i].y === head.y) {
+      gameOver();
+      return;
+    }
   }
 
   drawGame();
@@ -249,12 +282,13 @@ function pulseScore() {
 }
 
 function showCountdownAndStart(cb) {
+  const rect = canvas.getBoundingClientRect();
   const overlay = document.createElement("div");
   overlay.className = "countdown-overlay";
   Object.assign(overlay.style, {
-    position: "absolute",
-    left: canvas.getBoundingClientRect().left + "px",
-    top: canvas.getBoundingClientRect().top + "px",
+    position: "fixed",
+    left: rect.left + "px",
+    top: rect.top + "px",
     width: canvas.width + "px",
     height: canvas.height + "px",
     display: "flex",
@@ -324,39 +358,47 @@ document.addEventListener("keydown", (e) => {
 });
 
 // Focus canvas to improve keyboard handling
-canvas.setAttribute("tabindex", "0");
-canvas.style.outline = "none";
-canvas.addEventListener("click", () => canvas.focus());
-canvas.addEventListener("touchstart", () => canvas.focus(), {passive:true});
+function setupCanvasFocus() {
+  if (!canvas) return;
+  canvas.setAttribute("tabindex", "0");
+  canvas.style.outline = "none";
+  canvas.addEventListener("click", () => canvas.focus());
+  canvas.addEventListener("touchstart", () => canvas.focus(), {passive: true});
+}
+setupCanvasFocus(); // Call early, but safe if canvas null
 
 // Touch swipe support
 let touchStartX = 0, touchStartY = 0;
-canvas.addEventListener("touchstart", (e) => {
-  if (!e.touches || e.touches.length === 0) return;
-  const t = e.touches[0];
-  touchStartX = t.clientX;
-  touchStartY = t.clientY;
-}, {passive:true});
+function setupTouchControls() {
+  if (!canvas) return;
+  canvas.addEventListener("touchstart", (e) => {
+    if (!e.touches || e.touches.length === 0) return;
+    const t = e.touches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+  }, {passive: true});
 
-canvas.addEventListener("touchend", (e) => {
-  if (!e.changedTouches || e.changedTouches.length === 0) return;
-  const t = e.changedTouches[0];
-  const dxSwipe = t.clientX - touchStartX;
-  const dySwipe = t.clientY - touchStartY;
-  const absX = Math.abs(dxSwipe), absY = Math.abs(dySwipe);
-  const threshold = 24; // px
-  if (Math.max(absX, absY) < threshold) return;
+  canvas.addEventListener("touchend", (e) => {
+    if (!e.changedTouches || e.changedTouches.length === 0) return;
+    const t = e.changedTouches[0];
+    const dxSwipe = t.clientX - touchStartX;
+    const dySwipe = t.clientY - touchStartY;
+    const absX = Math.abs(dxSwipe), absY = Math.abs(dySwipe);
+    const threshold = 24; // px
+    if (Math.max(absX, absY) < threshold) return;
 
-  if (absX > absY) {
-    // horizontal
-    if (dxSwipe > 0) setDirectionIfNotOpposite(1,0);
-    else setDirectionIfNotOpposite(-1,0);
-  } else {
-    // vertical
-    if (dySwipe > 0) setDirectionIfNotOpposite(0,1);
-    else setDirectionIfNotOpposite(0,-1);
-  }
-}, {passive:true});
+    if (absX > absY) {
+      // horizontal
+      if (dxSwipe > 0) setDirectionIfNotOpposite(1, 0);
+      else setDirectionIfNotOpposite(-1, 0);
+    } else {
+      // vertical
+      if (dySwipe > 0) setDirectionIfNotOpposite(0, 1);
+      else setDirectionIfNotOpposite(0, -1);
+    }
+  }, {passive: true});
+}
+setupTouchControls(); // Call early
 
 function setDirectionIfNotOpposite(ndx, ndy) {
   if (dx === -ndx && dy === -ndy) return;
@@ -469,15 +511,20 @@ function initGame() {
   if (gameInitDone) return;
   gameInitDone = true;
 
-  // safety checks
-  if (!canvas || !ctx) {
-    console.error("Canvas not found");
+  // Set up canvas and context
+  canvas = document.getElementById('gameCanvas');
+  ctx = canvas ? canvas.getContext('2d') : null;
+  tileCount = canvas ? Math.floor(canvas.width / gridSize) : 0;
+
+  // Safety checks
+  if (!canvas || !ctx || tileCount <= 0) {
+    console.error("Canvas not found or invalid");
     return;
   }
 
   // make sure canvas is focusable
-  canvas.setAttribute("tabindex", "0");
-  canvas.style.outline = "none";
+  setupCanvasFocus();
+  setupTouchControls();
 
   generateFood();
   drawGame();
